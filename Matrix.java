@@ -1,26 +1,35 @@
+import java.util.Arrays;
 public class Matrix
 {
 	private int rows;
-	private int coloumns;
+	private int columns;
 	
-	private double[] values;
+	private double[][] values;
 
-	public Matrix(double[] values)
+	public Matrix(double[][] values)
 	{
 		this.values = Arrays.copyOf(values,values.length);
 		rows = values.length;
 		columns = values[0].length;
 	}
 
-	public Matrix(int[] values)
+	public Matrix(int[][] values)
 	{
 		for(int i=0;i<values.length;i++)
 		{
-			this.values[i] = values[i];
+            for(int j=0;j<values[0].length;j++)
+            {
+                this.values[i][j] = (double) values[i][j];
+            }
 		}
 		rows = values.length;
 		columns = values[0].length;
 	}
+
+    public double[][] getValues()
+    {
+        return values;
+    }
 
 	public int getRows()
 	{
@@ -34,14 +43,18 @@ public class Matrix
 
 	public double determinent()
 	{
-		if(rows!=column)
+		if(rows!=columns)
 		{
 			throw new IllegalArgumentException("Can't find the determinent of a non-square matrix.");
 		}
+        if(this.getColumns()==2)
+        {
+            return values[0][0]*values[1][1]-(values[0][1]*values[1][0]);
+        }
 		double ret=0;
 		for(int i=0;i<values.length;i++)
 		{
-			ret+=(Math.exp(-1,i)*determinent(getMinorMatrix(0,i))*values[0][i]);
+			ret+=(Math.pow(-1d,(double)i)*getMinorMatrix(0,i).determinent()*values[0][i]);
 		}
 		return ret;
 	}
@@ -49,19 +62,26 @@ public class Matrix
 	private Matrix getMinorMatrix(int removeRow,int removeColumn)
 	{
 		double[][] minorValues = new double[rows-1][columns-1];
+        
+        int p=0;
 
-		for(int i=0;i<minorValues.length;i++)
-		{
-			if(i==removeRow)
-				continue;
-			for(int j=0;j<minorValues[0].length;j++)
-			{
-				if(j==removeColumn)
-					continue;
+        for(int i=0;i<getRows();i++)
+        {
+            if(i==removeRow)
+                continue;
 
-				minorValues[i][j] = values[i][j];
-			}
-		}
+            int q=0;
+
+            for(int j=0;j<getColumns();j++)
+            {
+                if(j==removeColumn)
+                    continue;
+                minorValues[p][q] = values[i][j];
+                ++q;
+            }
+            ++p;
+        }   
+
 		return new Matrix(minorValues);
 	}
 
@@ -77,6 +97,11 @@ public class Matrix
 
 		return trace;
 	}
+
+    private boolean isSquare()
+    {
+        return getColumns()==getRows();
+    }
 
 	public static Matrix multiply(Matrix m1, Matrix m2)
 	{
@@ -105,12 +130,16 @@ public class Matrix
 		return new Matrix(newMatrix);
 	}
 
+    public Matrix getInverse()
+    {
+       return this.cofactorMatrix().transpose().scalarMultiply(1/this.determinent());
+    }
 	public Matrix transpose()
 	{
-		double[][] transposeValues = new double[values.getColumns()][values.getRows()];
+		double[][] transposeValues = new double[this.getColumns()][this.getRows()];
 		for(int i=0;i<getRows();i++)
 		{
-			for(int j=0lj<getColumns();j++)
+			for(int j=0;j<getColumns();j++)
 			{
 				transposeValues[j][i] = values[i][j];
 			}
@@ -118,16 +147,47 @@ public class Matrix
 		return new Matrix(transposeValues);
 	}
 
-	public static Matrix scalarMultiply(double c, Matrix m)
+    //TODO
+    //Figure out why the positives and negatives are wrong
+    public Matrix cofactorMatrix()
+    {
+        double[][] cofMat = new double[getRows()][getColumns()];
+        for(int i=0;i<getRows();i++)
+        {
+            for(int j=0;j<getColumns();j++)
+            {
+                cofMat[i][j] = Math.pow(-1.0,(i+1)*(j+1))*getMinorMatrix(i,j).determinent();
+            }
+        }
+
+        return new Matrix(cofMat);
+    }
+
+	public Matrix scalarMultiply(double c)
 	{
-		double[][] mValues = m.getValues();
-		for(int i=0;i<m.getRows();i++)
+		double[][] mValues = Arrays.copyOf(getValues(),getValues().length);;
+		for(int i=0;i<getRows();i++)
 		{
-			for(int j=0;j<m.getColumns();j++)
+			for(int j=0;j<getColumns();j++)
 			{
 				mValues[i][j] = c*mValues[i][j];
 			}
 		}
 		return new Matrix(mValues);
 	}
+
+    public String toString()
+    {
+        String ret = "";
+        for(int j=0;j<getRows();j++)
+        {
+            ret+="| ";
+            for(int i=0;i<getColumns();i++)
+            {
+                ret+=values[j][i]+" ";
+            }
+            ret+="|\n";
+        }
+        return ret;
+    }      
 }
