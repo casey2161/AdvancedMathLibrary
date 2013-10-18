@@ -1,4 +1,11 @@
 import java.util.Arrays;
+
+/**
+ * This class represents a matrix as defined in mathematics.
+ * It includes many methods related to matrices in math.
+ * @Author Casey Barnette
+ * @version 1.0
+ */
 public class Matrix
 {
 	private int rows;
@@ -6,6 +13,9 @@ public class Matrix
 	
 	private double[][] values;
 
+    /**
+     * This is the constructor for a matrix given a double array
+     */
 	public Matrix(double[][] values)
 	{
 		this.values = Arrays.copyOf(values,values.length);
@@ -13,6 +23,9 @@ public class Matrix
 		columns = values[0].length;
 	}
 
+    /**
+     * This is the constructor for a matrix given an integer array
+     */
 	public Matrix(int[][] values)
 	{
 		for(int i=0;i<values.length;i++)
@@ -26,21 +39,37 @@ public class Matrix
 		columns = values[0].length;
 	}
 
+    /**
+     * Returns a copy of the value array
+     * @return values
+     */
     public double[][] getValues()
     {
-        return values;
+        return Arrays.copyOf(values,values.length);
     }
 
+    /**
+     * Setter for the number of columns
+     * @return rows
+     */
 	public int getRows()
 	{
 		return rows;
 	}
 
+    /**
+     * Getter for the number of columns
+     * @return columns
+     */
 	public int getColumns()
 	{
 		return columns;
 	}
 
+    /**
+     * This method calculates the determinent of the matrix
+     * @return a double that is the determinent
+     */
 	public double determinent()
 	{
 		if(rows!=columns)
@@ -54,11 +83,13 @@ public class Matrix
 		double ret=0;
 		for(int i=0;i<values.length;i++)
 		{
-			ret+=(Math.pow(-1d,(double)i)*getMinorMatrix(0,i).determinent()*values[0][i]);
+			ret+=(Math.pow(-1d,(double)i+1)*getMinorMatrix(0,i).determinent()*values[0][i]);
 		}
 		return ret;
 	}
 
+    //this method creates a minor matrix from 
+    //the current matrix given the current minor
 	private Matrix getMinorMatrix(int removeRow,int removeColumn)
 	{
 		double[][] minorValues = new double[rows-1][columns-1];
@@ -76,7 +107,7 @@ public class Matrix
             {
                 if(j==removeColumn)
                     continue;
-                minorValues[p][q] = values[i][j];
+                minorValues[p][q] = values[j][i];
                 ++q;
             }
             ++p;
@@ -85,6 +116,10 @@ public class Matrix
 		return new Matrix(minorValues);
 	}
 
+    /**
+     * This method sums the diagonal
+     * @return the sum of the diagonals
+     */
 	public double getTrace()
 	{
 		double trace=0;
@@ -98,14 +133,23 @@ public class Matrix
 		return trace;
 	}
 
+    
     private boolean isSquare()
     {
         return getColumns()==getRows();
     }
 
+    /**
+     * This method multiplies two matrices.
+     * The method is static and takes two matrices and multiplies them
+     * @param the first Matrix
+     * @param the second Matrix
+     * @return returns the product
+     */
+    //TODO Fix this
 	public static Matrix multiply(Matrix m1, Matrix m2)
 	{
-		if(m1.getRows()!=m2.getColumns())
+		if(m1.getColumns()!=m2.getRows())
 		{
 			throw new IllegalArgumentException("Can't multiply the matrices because M1\'s number of columns"+
 					" do not match M2\'s number of rows");
@@ -114,26 +158,45 @@ public class Matrix
 		double[][] newMatrix = new double[m1.getRows()][m2.getColumns()];
 		double[][] m1Values = m1.getValues();
 		double[][] m2Values = m2.getValues();
-		for(int i=0;i<m1.getColumns();i++)
-		{
-			for(int j=0;j<m2.getRows();j++)
-			{
-				newMatrix[i][j]=0;
-				//This can be a little confusing
-				//The third one is for cycling the values of m1's row and m2's column
-				for(int k=0;k<m1.getColumns();k++)
-				{
-					newMatrix[i][j] +=m1Values[i][k]*m2Values[k][i];
-				}
-			}
-		}
-		return new Matrix(newMatrix);
+		
+        for(int i=0;i<m1.getRows();i++)
+        {
+            for(int j=0;j<m2.getColumns();j++)
+            {
+                newMatrix[i][j] = multRowCol(m1Values,m2Values,i,j);
+            }
+        }
+        return new Matrix(newMatrix);
 	}
+    
+    //This is not treating rows correctly
+    private static double multRowCol(double[][] m1,double[][] m2,int row,int column)
+    {
+        double ret = 0;
+        for(int i=0;i<m1[0].length;i++)
+        {
+            for(int j=0;j<m2.length;j++)
+            {
+                System.out.println(m1[row][i] + "*"+m2[j][column]);
+                ret+=m1[row][i]*m2[j][column];
+            }
+        }
+        return ret;
+    }
 
+    /**
+     * Creates the inverse of the matrix
+     * @return the inverse of the matrix
+     */
     public Matrix getInverse()
     {
        return this.cofactorMatrix().transpose().scalarMultiply(1/this.determinent());
     }
+
+    /**
+     * Transposes the matrix
+     * @return the transposed matrix
+     */
 	public Matrix transpose()
 	{
 		double[][] transposeValues = new double[this.getColumns()][this.getRows()];
@@ -147,8 +210,10 @@ public class Matrix
 		return new Matrix(transposeValues);
 	}
 
-    //TODO
-    //Figure out why the positives and negatives are wrong
+    /*
+     * This method finds the cofactor matrix of a matrix.
+     * It is used to find the inverse matrix
+     */
     public Matrix cofactorMatrix()
     {
         double[][] cofMat = new double[getRows()][getColumns()];
@@ -156,13 +221,18 @@ public class Matrix
         {
             for(int j=0;j<getColumns();j++)
             {
-                cofMat[i][j] = Math.pow(-1.0,(i+1)*(j+1))*getMinorMatrix(i,j).determinent();
+                cofMat[i][j] = Math.pow(-1.0,(i+1)+(j+1))*getMinorMatrix(i,j).determinent();
             }
         }
 
         return new Matrix(cofMat);
     }
 
+    /**
+     * This method multiplies the Matrix by a scalar c.
+     * @param a scalar C
+     * @return The matrix after scalar multiply
+     */
 	public Matrix scalarMultiply(double c)
 	{
 		double[][] mValues = Arrays.copyOf(getValues(),getValues().length);;
@@ -176,6 +246,10 @@ public class Matrix
 		return new Matrix(mValues);
 	}
 
+    /**
+     * String representation of a Matrix
+     * @return Returns the string
+     */
     public String toString()
     {
         String ret = "";
