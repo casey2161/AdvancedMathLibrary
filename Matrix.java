@@ -1,3 +1,4 @@
+package com.matrix;
 import java.util.Arrays;
 
 /**
@@ -90,7 +91,7 @@ public class Matrix
 
     //this method creates a minor matrix from 
     //the current matrix given the current minor
-	private Matrix getMinorMatrix(int removeRow,int removeColumn)
+	protected Matrix getMinorMatrix(int removeRow,int removeColumn)
 	{
 		double[][] minorValues = new double[rows-1][columns-1];
         
@@ -175,11 +176,7 @@ public class Matrix
         double ret = 0;
         for(int i=0;i<m1[0].length;i++)
         {
-            for(int j=0;j<m2.length;j++)
-            {
-                System.out.println(m1[row][i] + "*"+m2[j][column]);
-                ret+=m1[row][i]*m2[j][column];
-            }
+            ret+=m1[row][i]*m2[i][column];
         }
         return ret;
     }
